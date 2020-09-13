@@ -1,5 +1,6 @@
 import tensorflow as tf
 import ast
+import argparse
 
 import numpy as np
 import pandas as pd
@@ -7,6 +8,13 @@ import pandas as pd
 import os
 import time
 import json
+
+tf.get_logger().setLevel('ERROR')
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("query")
+args = parser.parse_args()
 
 """
 df = pd.read_csv('data/RAW_recipes.csv')
@@ -115,4 +123,10 @@ def generate_text(model, start_string):
 
   return (start_string + ''.join(text_generated))
 
-print(generate_text(model, start_string=u"add"))
+output_text = generate_text(model, start_string=args.query.lower())
+                            
+print(output_text)
+
+with open("output.txt", "w") as output_file:
+    output_file.write(output_text)
+                            

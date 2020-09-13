@@ -1,12 +1,17 @@
+# Import Libraries
 import tensorflow as tf
 import ast
-
 import numpy as np
 import pandas as pd
-
 import os
 import time
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("initial_epoch")
+args = parser.parse_args()
+
+# Read in Food.com dataset
 df = pd.read_csv('data/RAW_recipes.csv')
 recipe_df = df[["steps"]]
 
@@ -18,37 +23,29 @@ for recipe in recipe_df["processed"]:
 
 # The unique characters in the file
 vocab = sorted(set(text))
-print ('{} unique characters'.format(len(vocab)))
 
 # Creating a mapping from unique characters to indices
 char2idx = {u:i for i, u in enumerate(vocab)}
 idx2char = np.array(vocab)
 
+# Convert all the text in the Food.com set into their corresponding integers.
 text_as_int = np.array([char2idx[c] for c in text])
 
-print('{')
-for char,_ in zip(char2idx, range(20)):
-    print('  {:4s}: {:3d},'.format(repr(char), char2idx[char]))
-print('  ...\n}')
-
-# Show how the first 13 characters from the text are mapped to integers
-print ('{} ---- characters mapped to int ---- > {}'.format(repr(text[:13]), text_as_int[:13]))
-
-# The maximum length sentence we want for a single input in characters
+# The maximum length sentence we want for a single input in characters is 100. In other
+# words. Given one single input, we want to predict up to 100 characters in advance.
 seq_length = 100
-examples_per_epoch = len(text)//(seq_length+1)
 
-# Create training examples / targets
+# Create training examples. First we make this into a dataset from the
+# integered text. 
 char_dataset = tf.data.Dataset.from_tensor_slices(text_as_int)
 
-for i in char_dataset.take(5):
-  print(idx2char[i.numpy()])
-
+# Now we return batches of size sequence+1 into this variable. If the last batch
+# has less than seq_lenth + 1 elements, we disregard it.
 sequences = char_dataset.batch(seq_length+1, drop_remainder=True)
 
-for item in sequences.take(5):
-  print(repr(''.join(idx2char[item.numpy()])))
-  
+# This function will split the text into an input chunk and the
+# target chunk. Remember, our input (the first part) should be
+# everything but the last part of the text.
 def split_input_target(chunk):
   input_text = chunk[:-1]
   target_text = chunk[1:]
@@ -70,8 +67,6 @@ BATCH_SIZE = 64
 BUFFER_SIZE = 10000
 
 dataset = dataset.shuffle(BUFFER_SIZE).batch(BATCH_SIZE, drop_remainder=True)
-
-dataset
 
 # Length of the vocabulary in chars
 vocab_size = len(vocab)
@@ -122,4 +117,4 @@ early_stop_callback = tf.keras.callbacks.EarlyStopping(
 EPOCHS=10
 
 print("Starting Training")
-history = model.fit(dataset, epochs=EPOCHS, callbacks=[checkpoint_callback, early_stop_callback])
+history = model.fit(dataset, epochs=EPOCHS, initial_epoch=args.initial_epoch, callbacks=[checkpoint_callback, early_stop_callback])

@@ -9,30 +9,14 @@ import os
 import time
 import json
 
-tf.get_logger().setLevel('ERROR')
+# Disable Tensorflow Warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '3'
 
-
+# Parse Command-Line Arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("query")
 args = parser.parse_args()
-
-"""
-df = pd.read_csv('data/RAW_recipes.csv')
-recipe_df = df[["steps"]]
-
-recipe_df["processed"] = [". ".join(ast.literal_eval(step_array)) for step_array in recipe_df.steps]
-text = ""
-
-for recipe in recipe_df["processed"]:
-    text += recipe
-
-# The unique characters in the file
-vocab = sorted(set(text))
-print ('{} unique characters'.format(len(vocab)))
-
-# Creating a mapping from unique characters to indices
-char2idx = {u:i for i, u in enumerate(vocab)}
-"""
 
 idx2char = []
 
@@ -51,38 +35,6 @@ while 1:
     idx2char.append(char)
     
 arr_file.close() 
-
-print(idx2char)
-
-"""
-checkpoint_dir = './training_checkpoints'
-
-def build_model(vocab_size, embedding_dim, rnn_units, batch_size):
-  model = tf.keras.Sequential([
-    tf.keras.layers.Embedding(vocab_size, embedding_dim,
-                              batch_input_shape=[batch_size, None]),
-    tf.keras.layers.LSTM(rnn_units,
-                        return_sequences=True,
-                        stateful=True,
-                        recurrent_initializer='glorot_uniform'),
-    tf.keras.layers.Dense(vocab_size)
-  ])
-  return model
-
-
-tf.train.latest_checkpoint(checkpoint_dir)
-
-model = build_model(67, 256, 1024, batch_size=1)
-
-model.load_weights(tf.train.latest_checkpoint(checkpoint_dir))
-
-model.build(tf.TensorShape([1, None]))
-
-model.summary()
-
-model.save("saved_model/recipe_generator")
-
-"""
 
 model = tf.keras.models.load_model('saved_model/recipe_generator')
 
@@ -129,4 +81,4 @@ print(output_text)
 
 with open("output.txt", "w") as output_file:
     output_file.write(output_text)
-                            
+                          

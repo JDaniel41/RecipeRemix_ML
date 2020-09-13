@@ -6,7 +6,9 @@ import pandas as pd
 
 import os
 import time
+import json
 
+"""
 df = pd.read_csv('data/RAW_recipes.csv')
 recipe_df = df[["steps"]]
 
@@ -22,33 +24,29 @@ print ('{} unique characters'.format(len(vocab)))
 
 # Creating a mapping from unique characters to indices
 char2idx = {u:i for i, u in enumerate(vocab)}
-idx2char = np.array(vocab)
+"""
 
-text_as_int = np.array([char2idx[c] for c in text])
+idx2char = []
 
-print('{')
-for char,_ in zip(char2idx, range(20)):
-    print('  {:4s}: {:3d},'.format(repr(char), char2idx[char]))
-print('  ...\n}')
+# Creating a mapping from unique characters to indices
+with open("char2idx.json", "r") as json_file:
+    char2idx = json.load(json_file)
+    json_file.close()
 
-# Show how the first 13 characters from the text are mapped to integers
-print ('{} ---- characters mapped to int ---- > {}'.format(repr(text[:13]), text_as_int[:13]))
+arr_file = open("idx2char.txt", "r")
+while 1: 
+      
+    # read by character 
+    char = arr_file.read(1)           
+    if not char: 
+        break
+    idx2char.append(char)
+    
+arr_file.close() 
 
-# The maximum length sentence we want for a single input in characters
-seq_length = 100
-examples_per_epoch = len(text)//(seq_length+1)
+print(idx2char)
 
-# Create training examples / targets
-char_dataset = tf.data.Dataset.from_tensor_slices(text_as_int)
-
-for i in char_dataset.take(5):
-  print(idx2char[i.numpy()])
-
-sequences = char_dataset.batch(seq_length+1, drop_remainder=True)
-
-for item in sequences.take(5):
-  print(repr(''.join(idx2char[item.numpy()])))
-
+"""
 checkpoint_dir = './training_checkpoints'
 
 def build_model(vocab_size, embedding_dim, rnn_units, batch_size):
@@ -73,6 +71,12 @@ model.load_weights(tf.train.latest_checkpoint(checkpoint_dir))
 model.build(tf.TensorShape([1, None]))
 
 model.summary()
+
+model.save("saved_model/recipe_generator")
+
+"""
+
+model = tf.keras.models.load_model('saved_model/recipe_generator')
 
 def generate_text(model, start_string):
   # Evaluation step (generating text using the learned model)

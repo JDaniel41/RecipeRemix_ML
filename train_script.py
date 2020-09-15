@@ -66,6 +66,9 @@ BATCH_SIZE = 64
 # it maintains a buffer in which it shuffles elements).
 BUFFER_SIZE = 10000
 
+# Directory where the checkpoints will be saved
+checkpoint_dir = './training_checkpoints'
+
 dataset = dataset.shuffle(BUFFER_SIZE).batch(BATCH_SIZE, drop_remainder=True)
 
 # Length of the vocabulary in chars
@@ -94,6 +97,8 @@ model = build_model(
     embedding_dim=embedding_dim,
     rnn_units=rnn_units,
     batch_size=BATCH_SIZE)
+
+model.load_weights(tf.train.latest_checkpoint(checkpoint_dir))
 model.summary()
 
 def loss(labels, logits):
@@ -101,8 +106,6 @@ def loss(labels, logits):
 
 model.compile(optimizer='adam', loss=loss)
 
-# Directory where the checkpoints will be saved
-checkpoint_dir = './training_checkpoints'
 # Name of the checkpoint files
 checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt_{epoch}")
 
@@ -114,7 +117,7 @@ early_stop_callback = tf.keras.callbacks.EarlyStopping(
     monitor='loss', patience=3
 )
 
-EPOCHS=10
+EPOCHS=30
 
 print("Starting Training")
-history = model.fit(dataset, epochs=EPOCHS, initial_epoch=args.initial_epoch, callbacks=[checkpoint_callback, early_stop_callback])
+history = model.fit(dataset, epochs=EPOCHS, initial_epoch=(int)(args.initial_epoch), callbacks=[checkpoint_callback, early_stop_callback])

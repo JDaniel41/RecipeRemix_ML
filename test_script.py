@@ -36,7 +36,7 @@ while 1:
     
 arr_file.close() 
 
-model = tf.keras.models.load_model('saved_model/recipe_generator')
+model = tf.keras.models.load_model('saved_model/recipe_generator_v2', compile=False)
 
 def generate_text(model, start_string):
   # Evaluation step (generating text using the learned model)
